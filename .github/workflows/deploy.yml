@@ -28,6 +28,9 @@ jobs:
   terraform-plan:
     name: Terraform Plan
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: aws_s3_buckets/nmel-tf-state
     needs: terraform-check
 
     steps:
