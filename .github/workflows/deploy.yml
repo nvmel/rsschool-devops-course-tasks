@@ -9,6 +9,9 @@ jobs:
   terraform-check:
     name: Terraform Format Check
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: aws_s3_buckets/nmel-tf-state
 
     steps:
       - name: Checkout code
