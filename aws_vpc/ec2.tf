@@ -1,3 +1,7 @@
+locals {
+  azs = ["us-east-1a", "us-east-1b"]
+
+}
 # Bastion Security Group (allows SSH from the internet)
 resource "aws_security_group" "bastion_sg" {
   name        = "bastion-sg"
@@ -44,10 +48,10 @@ resource "aws_security_group" "private_sg" {
 resource "aws_instance" "bastion" {
   ami                    = var.ami_id
   instance_type          = var.instance_type
-  subnet_id              = var.public_subnets.id
-  key_name               = var.key_pair_name
+  subnet_id              = var.public_subnets[0]
   vpc_security_group_ids = [aws_security_group.bastion_sg.id]
   associate_public_ip_address = true
+  availability_zone = local.azs[0]
 
   tags = {
     Name = "BastionHost"
@@ -56,14 +60,29 @@ resource "aws_instance" "bastion" {
 
 # Private EC2 Instance
 resource "aws_instance" "private" {
+  count = 2
   ami                    = var.ami_id
   instance_type          = var.instance_type
-  subnet_id              = var.private_subnets.id
-  key_name               = var.key_pair_name
+  subnet_id              = var.private_subnets[count.index]
   vpc_security_group_ids = [aws_security_group.private_sg.id]
   associate_public_ip_address = false
+  availability_zone = local.azs[count.index]
 
   tags = {
     Name = "PrivateInstance"
+  }
+}
+
+# Public EC2 Instance
+resource "aws_instance" "public" {
+  ami                    = var.ami_id
+  instance_type          = var.instance_type
+  subnet_id              = var.private_subnets[1]
+  vpc_security_group_ids = [aws_security_group.private_sg.id]
+  associate_public_ip_address = false
+  availability_zone = local.azs[1]
+
+  tags = {
+    Name = "PublicInstance"
   }
 }
